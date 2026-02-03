@@ -19,5 +19,6 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 
 # Run a quick optimization
 RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 CMD ["/start.sh"]
