@@ -12,13 +12,10 @@ ENV REAL_IP_HEADER 1
 ENV APP_ENV production
 ENV APP_DEBUG false
 ENV LOG_CHANNEL stderr
-
-# This is the "Magic" for Laravel routing in this image
-ENV nginx_conf_file /var/www/html/nginx.conf
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Run a quick optimization
-RUN composer install --no-dev --optimize-autoloader
-RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+# This tells the image to run composer install when the container starts
+ENV SKIP_COMPOSER 0
+ENV PHP_MEMORY_LIMIT 512M
 
 CMD ["/start.sh"]
