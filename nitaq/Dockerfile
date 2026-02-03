@@ -1,6 +1,6 @@
 FROM richarvey/nginx-php-fpm:latest
 
-# Copy your Laravel subfolder into the container
+# Copy everything from your subfolder
 COPY nitaq /var/www/html
 
 # Image Configuration
@@ -15,11 +15,14 @@ ENV APP_DEBUG true
 ENV LOG_CHANNEL stderr
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Fix Permissions BEFORE starting the server
+# Force composer install during the BUILD phase
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+
+# Fix Permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Ensure the Nginx config for routing is used
+# Nginx config for routing
 ENV nginx_conf_file /var/www/html/conf/nginx.conf
 
 CMD ["/start.sh"]
