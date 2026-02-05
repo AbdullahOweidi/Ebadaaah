@@ -12,7 +12,7 @@ ENV REAL_IP_HEADER 1
 
 # Laravel Configuration
 ENV APP_ENV production
-ENV APP_DEBUG true 
+ENV APP_DEBUG false 
 ENV LOG_CHANNEL stderr
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
