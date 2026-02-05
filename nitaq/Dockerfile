@@ -16,6 +16,7 @@ ENV APP_DEBUG false
 ENV LOG_CHANNEL stderr
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
+
 # Install dependencies within the nitaq context
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
