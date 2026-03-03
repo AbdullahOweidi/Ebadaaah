@@ -1,14 +1,68 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, SafeAreaView, TextInput, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, SafeAreaView, TextInput, Platform, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { Colors } from '../constants/Colors';
 
 const { width } = Dimensions.get('window');
 
 export default function RegisterScreen() {
   const router = useRouter();
+  
+  // State management
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!email || !password) {
+      Alert.alert('خطأ', 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Adjust IP address based on your environment (10.0.2.2 for Android emulator)
+      const response = await fetch('http://10.0.2.2:8000/api/register', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password,
+          type: 'organization', // Hardcoding the type based on this app's context
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        // Store the token and user type securely
+        await SecureStore.setItemAsync('userToken', data.data.access_token);
+        await SecureStore.setItemAsync('userType', data.data.user.type);
+
+        Alert.alert('نجاح', 'تم إنشاء الحساب بنجاح');
+        
+        // Redirect to the organization dashboard
+        router.replace('./(drawer)/organization_dashboard');
+      } else {
+        // Handle validation errors from Laravel
+        const errorMessage = data.message || 'حدث خطأ أثناء التسجيل';
+        Alert.alert('خطأ في التسجيل', errorMessage);
+      }
+    } catch (error) {
+      Alert.alert('خطأ في الاتصال', 'تعذر الاتصال بالخادم. تأكد من تشغيل الخادم المحلي.');
+      console.error('Registration Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -25,25 +79,33 @@ export default function RegisterScreen() {
         <View style={styles.content}>
           <View style={styles.inputGroup}>
             <View style={styles.labelContainer}>
-              {/* Added non-breaking space */}
               <Text style={styles.label}>البريد{'\u00A0'}الإلكتروني</Text>
               <Feather name="mail" size={16} color={Colors.primaryText} style={styles.labelIcon} />
             </View>
-            <TextInput style={styles.input} keyboardType="email-address" autoCapitalize="none" />
+            <TextInput 
+              style={styles.input} 
+              keyboardType="email-address" 
+              autoCapitalize="none" 
+              value={email}
+              onChangeText={setEmail}
+            />
           </View>
 
           <View style={styles.inputGroup}>
             <View style={styles.labelContainer}>
-              {/* Added non-breaking space */}
               <Text style={styles.label}>رقم{'\u00A0'}الهاتف</Text>
               <Feather name="phone" size={16} color={Colors.primaryText} style={styles.labelIcon} />
             </View>
-            <TextInput style={styles.input} keyboardType="phone-pad" />
+            <TextInput 
+              style={styles.input} 
+              keyboardType="phone-pad" 
+              value={phone}
+              onChangeText={setPhone}
+            />
           </View>
 
           <View style={styles.inputGroup}>
             <View style={styles.labelContainer}>
-              {/* Added non-breaking space */}
               <Text style={styles.label}>كلمة{'\u00A0'}المرور</Text>
               <Feather name="lock" size={16} color={Colors.primaryText} style={styles.labelIcon} />
             </View>
@@ -51,7 +113,12 @@ export default function RegisterScreen() {
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
                 <Feather name={showPassword ? "eye" : "eye-off"} size={20} color={Colors.secondaryText} />
               </TouchableOpacity>
-              <TextInput style={[styles.input, { flex: 1, marginBottom: 0 }]} secureTextEntry={!showPassword} />
+              <TextInput 
+                style={[styles.input, { flex: 1, marginBottom: 0 }]} 
+                secureTextEntry={!showPassword} 
+                value={password}
+                onChangeText={setPassword}
+              />
             </View>
           </View>
 
@@ -72,8 +139,17 @@ export default function RegisterScreen() {
             <Text style={styles.loginTextMain}>لديك حساب؟ <Text style={styles.loginTextBold}>تسجيل الدخول</Text></Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-            <Text style={styles.buttonText}>انشاء حساب</Text>
+          <TouchableOpacity 
+            style={[styles.button, isLoading && { opacity: 0.7 }]} 
+            activeOpacity={0.8}
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={Colors.whiteText} />
+            ) : (
+              <Text style={styles.buttonText}>انشاء حساب</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -96,8 +172,8 @@ const styles = StyleSheet.create({
     color: Colors.primaryText, 
     fontFamily: 'Arabic-Bold', 
     marginRight: 8,
-    textAlign: 'right', // Explicit alignment for Arabic
-    writingDirection: 'rtl' // Forces RTL rendering engine
+    textAlign: 'right',
+    writingDirection: 'rtl'
   },
   labelIcon: { marginLeft: 4 },
   input: { backgroundColor: Colors.inputBackground, borderRadius: 12, height: 50, paddingHorizontal: 16, textAlign: 'right', fontFamily: 'Arabic-Bold', color: Colors.primaryText },

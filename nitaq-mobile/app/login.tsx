@@ -1,14 +1,70 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, SafeAreaView, TextInput, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, SafeAreaView, TextInput, Platform, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { Colors } from '../constants/Colors';
 
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const router = useRouter();
+  
+  // State management for form inputs and loading status
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('خطأ', 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // NOTE: Use 10.0.2.2 for Android Emulator, 127.0.0.1 for iOS Simulator, 
+      // or your local IPv4 address (e.g., 192.168.1.x) for a physical device.
+      const response = await fetch('http://10.0.2.2:8000/api/login', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        // Enforce the Organization role requirement
+        if (data.data.user.type !== 'organization') {
+          Alert.alert('صلاحيات غير كافية', 'هذا الحساب ليس مسجلاً كمنظمة.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Store the token and user type securely
+        await SecureStore.setItemAsync('userToken', data.data.access_token);
+        await SecureStore.setItemAsync('userType', data.data.user.type);
+
+        // Redirect to the organization dashboard
+        router.replace('./(drawer)/organization_dashboard');
+      } else {
+        Alert.alert('خطأ في تسجيل الدخول', data.message || 'بيانات الاعتماد غير صحيحة');
+      }
+    } catch (error) {
+      Alert.alert('خطأ في الاتصال', 'تعذر الاتصال بالخادم. تأكد من تشغيل الخادم المحلي.');
+      console.error('Login Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -22,7 +78,7 @@ export default function LoginScreen() {
             <Feather name="arrow-left" size={24} color={Colors.primaryText} />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>أهلا بعودتك محمد</Text>
+            <Text style={styles.headerTitle}>أهلا بك</Text>
           </View>
         </View>
 
@@ -35,13 +91,18 @@ export default function LoginScreen() {
               <Text style={styles.label}>البريد الإلكتروني</Text>
               <Feather name="mail" size={16} color={Colors.primaryText} style={styles.labelIcon} />
             </View>
-            <TextInput style={styles.input} keyboardType="email-address" autoCapitalize="none" />
+            <TextInput 
+              style={styles.input} 
+              keyboardType="email-address" 
+              autoCapitalize="none" 
+              value={email}
+              onChangeText={setEmail}
+            />
           </View>
 
           {/* Password Input */}
           <View style={styles.inputGroup}>
             <View style={styles.labelContainer}>
-              {/* Using a non-breaking space to prevent the word from wrapping or clipping */}
               <Text style={styles.label}>كلمة{'\u00A0'}المرور</Text>
               <Feather name="lock" size={16} color={Colors.primaryText} style={styles.labelIcon} />
             </View>
@@ -52,6 +113,8 @@ export default function LoginScreen() {
               <TextInput 
                 style={[styles.input, { flex: 1, marginBottom: 0 }]} 
                 secureTextEntry={!showPassword} 
+                value={password}
+                onChangeText={setPassword}
               />
             </View>
           </View>
@@ -89,8 +152,17 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {/* Main Button */}
-          <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => router.replace('./(drawer)/organization_dashboard')}>
-            <Text style={styles.buttonText}>تسجيل الدخول</Text>
+          <TouchableOpacity 
+            style={[styles.button, isLoading && { opacity: 0.7 }]} 
+            activeOpacity={0.8} 
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={Colors.whiteText} />
+            ) : (
+              <Text style={styles.buttonText}>تسجيل الدخول</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -115,8 +187,8 @@ const styles = StyleSheet.create({
     color: Colors.primaryText, 
     fontFamily: 'Arabic-Bold', 
     marginRight: 8,
-    textAlign: 'right', // Explicit alignment for Arabic
-    writingDirection: 'rtl' // Forces RTL rendering engine
+    textAlign: 'right',
+    writingDirection: 'rtl'
   },
   labelIcon: { marginLeft: 4 },
   input: { backgroundColor: Colors.inputBackground, borderRadius: 12, height: 50, paddingHorizontal: 16, textAlign: 'right', fontFamily: 'Arabic-Bold', color: Colors.primaryText },
