@@ -36,7 +36,7 @@ export default function LoginSelectionScreen() {
           </Text>
 
           {/* Buttons */}
-          <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={() => router.replace('./login')}>
             <Text style={styles.buttonText}>حساب مؤسسة</Text>
           </TouchableOpacity>
 

@@ -4,4 +4,6 @@ export const Colors = {
   cardBackground: '#61432A', // Dark brown for the bottom sheet
   buttonBackground: '#F4BA42', // Yellow/Gold for the button
   whiteText: '#FFFFFF',
+  inputBackground: '#FDEAC8', // Light beige for text inputs
+  secondaryText: '#9E7E65',
 };

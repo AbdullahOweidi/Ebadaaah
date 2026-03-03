@@ -2,13 +2,12 @@ import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler'; // ADD THIS
 
-// Prevent the splash screen from hiding until fonts are loaded
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    // Make sure this path and filename exactly match your file
     'Arabic-Bold': require('../assets/fonts/CustomFont-Bold.ttf'), 
   });
 
@@ -19,20 +18,24 @@ export default function RootLayout() {
   }, [loaded, error]);
 
   if (!loaded && !error) {
-    return null; // Return null while the font is loading
+    return null; 
   }
 
   return (
-    <Stack>
-      <Stack.Screen 
-        name="index" 
-        options={{ headerShown: false, animation: 'fade' }} 
-      />
-      <Stack.Screen 
-        name="onboarding" 
-        options={{ headerShown: false, animation: 'fade' }} 
-      />
-      <Stack.Screen name="login-selection" options={{ headerShown: false, animation: 'fade' }} />
-    </Stack>
+    // WRAP YOUR STACK IN THIS:
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="login-selection" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="login" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="register" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="forgot-password" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="new-password" options={{ headerShown: false, animation: 'fade' }} />
+        
+        {/* Register the new Drawer group */}
+        <Stack.Screen name="(drawer)" options={{ headerShown: false, animation: 'fade' }} />
+      </Stack>
+    </GestureHandlerRootView>
   );
 }
