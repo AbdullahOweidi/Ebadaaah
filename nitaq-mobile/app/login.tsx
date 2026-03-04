@@ -27,7 +27,7 @@ export default function LoginScreen() {
     try {
       // NOTE: Use 10.0.2.2 for Android Emulator, 127.0.0.1 for iOS Simulator, 
       // or your local IPv4 address (e.g., 192.168.1.x) for a physical device.
-      const response = await fetch('http://10.0.2.2:8000/api/login', {
+      const response = await fetch('https://light-bananas-sip.loca.lt/api/login', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',

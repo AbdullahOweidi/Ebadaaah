@@ -27,7 +27,7 @@ export default function RegisterScreen() {
 
     try {
       // Adjust IP address based on your environment (10.0.2.2 for Android emulator)
-      const response = await fetch('http://10.0.2.2:8000/api/register', {
+      const response = await fetch('https://light-bananas-sip.loca.lt/api/register', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
