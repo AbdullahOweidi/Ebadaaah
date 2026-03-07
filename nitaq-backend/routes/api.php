@@ -13,7 +13,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     
     // Add a supervisor
-    Route::post('/supervisors', [SupervisorController::class, 'store']);
+    Route::post('/addSupervisors', [SupervisorController::class, 'store']);
+
+    // Get all supervisors
+    Route::get('/getSupervisors', [SupervisorController::class, 'index']);
     
     // Retrieve the currently authenticated user's details
     Route::get('/user', function (Request $request) {

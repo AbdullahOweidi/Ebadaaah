@@ -19,4 +19,15 @@ class SupervisorController extends Controller
             'data' => $supervisor
         ], 201);
     }
+
+    public function index(): JsonResponse
+    {
+        $supervisors = Supervisor::all();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Supervisors retrieved successfully.',
+            'data' => $supervisors
+        ], 200);
+    }
 }
